@@ -134,4 +134,4 @@ async function serve(req, res) {
   json(res, 404, { error: 'not found' });
 }
 
-http.createServer((req, res) => serve(req, res).catch(err => json(res, 500, { error: err.message }))).listen(port, () => console.log(`QuickCart agent running at http://localhost:${port}`));
+http.createServer((req, res) => serve(req, res).catch(err => json(res, 500, { error: err.message }))).listen(port, '0.0.0.0', () => console.log(`QuickCart agent running on port ${port}`));
