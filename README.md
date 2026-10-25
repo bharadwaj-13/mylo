@@ -26,3 +26,5 @@ Then open `http://localhost:8787`. The server exposes:
 The store data and cart URLs are demo adapters. The production layer replaces those adapters with authenticated quick-commerce integrations or a browser/Android automation worker, then sends the user to the official app for UPI payment. The agent never receives a UPI PIN.
 
 For Twilio Sandbox testing, expose the server over HTTPS and set the Twilio inbound-message webhook to `/api/twilio/whatsapp` with HTTP POST. The current Twilio handler accepts the Sandbox's form-encoded `Body` and replies with TwiML.
+
+Vercel deployment files are included (`api/index.js` and `vercel.json`). Set `VERCEL=1` in the deployment environment; the Vercel function serves the dashboard and webhook routes from the same project.
