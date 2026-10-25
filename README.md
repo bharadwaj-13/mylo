@@ -1,30 +1,50 @@
-# QuickCart prototype
+# Mylo
 
-Open `quickcart-dashboard.html` in a browser. It is a self-contained clickable prototype for the Instinct-style quick-commerce agent. A runnable local agent server is included in `server.js`.
+Mylo is a WhatsApp-first, browser-operated quick-commerce assistant for India. It keeps the shopper in control: Mylo opens supported retailers in a private browser session, compares carts, then sends the shopper to the official checkout to approve UPI. It never receives or stores a password, OTP, or UPI PIN.
 
-- Overview dashboard with savings, activity, orders, and connected stores
-- New shopping request flow
-- Store comparison with total price and delivery-time tradeoffs
-- Cart preparation followed by a UPI handoff state
-- Account, order, referral, and settings entry points for the next implementation phase
+## What is in this repository
 
-Run the local agent with Node 20+:
+- Vercel control plane: dashboard, Supabase authentication, Twilio WhatsApp webhook, job/event APIs
+- Supabase schema with row-level security for users, store connections, jobs, quotes, events and OTP challenges
+- A self-hosted Docker browser worker using Playwright and an optional noVNC viewer
+- WhatsApp text → shopping job → browser tabs → user login/location/OTP → cart comparison → official UPI handoff flow
+
+## Deploy the control plane
+
+1. Create a Supabase project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor.
+2. In Vercel, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and a long random `MYLO_WORKER_SHARED_SECRET`.
+3. Point the Twilio WhatsApp Sandbox inbound webhook at `https://your-domain/api/twilio/whatsapp` using HTTP POST. If `TWILIO_AUTH_TOKEN` is set, requests are signature-verified.
+4. In Mylo, create an account and add/link the WhatsApp number you message from. A Settings form is the next UI addition for that link.
+
+## Deploy the browser worker
+
+Vercel is the control plane only. Logged-in browser sessions need a persistent Docker host and persistent disk; deploy [`worker/`](worker/) to a VM, Railway, Render, Fly.io, or another Docker service with volume storage. See [`worker/README.md`](worker/README.md).
+
+Set these worker variables:
 
 ```bash
+MYLO_WORKER_SHARED_SECRET=same-value-as-vercel
+MYLO_CONTROL_PLANE_URL=https://your-mylo-domain
+SUPABASE_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+```
+
+Set `MYLO_WORKER_URL` and `MYLO_BROWSER_VIEWER_URL` in Vercel once the worker is live. Protect the viewer URL with a VPN or identity-aware proxy before using it; it is the interactive browser surface where a shopper enters a retailer OTP.
+
+## Local development
+
+```bash
+cp .env.example .env
 npm start
 ```
 
-Then open `http://localhost:8787`. The server exposes:
+Then open `http://localhost:8787`. The browser worker is separate:
 
-- `GET /health` — service health
-- `GET /api/state` — dashboard state
-- `POST /api/requests` with `{ "text": "chips and drinks under ₹200" }` — create a shopping request
-- `POST /api/requests/:id/approve` — prepare the selected cart and UPI handoff
-- `GET/POST /api/whatsapp/webhook` — Meta WhatsApp webhook verification and inbound-message simulation
-- `POST /api/twilio/whatsapp` — Twilio WhatsApp Sandbox inbound webhook (returns TwiML)
+```bash
+cd worker
+docker build -t mylo-worker .
+```
 
-The store data and cart URLs are demo adapters. The production layer replaces those adapters with authenticated quick-commerce integrations or a browser/Android automation worker, then sends the user to the official app for UPI payment. The agent never receives a UPI PIN.
+## Safety model
 
-For Twilio Sandbox testing, expose the server over HTTPS and set the Twilio inbound-message webhook to `/api/twilio/whatsapp` with HTTP POST. The current Twilio handler accepts the Sandbox's form-encoded `Body` and replies with TwiML.
-
-Vercel deployment files are included (`api/index.js` and `vercel.json`). Set `VERCEL=1` in the deployment environment; the Vercel function serves the dashboard and webhook routes from the same project.
+Mylo uses the websites’ normal browser interfaces under the customer’s own account. It deliberately pauses for OTPs, CAPTCHAs, location prompts and payment. It does not bypass access controls, simulate payment approval, scrape around anti-bot protections, or retain raw credentials.
