@@ -1,0 +1,9 @@
+{
+  "name": "quickcart-agent",
+  "version": "0.1.0",
+  "private": true,
+  "description": "WhatsApp-first agentic quick-commerce prototype",
+  "type": "module",
+  "scripts": { "start": "node server.js", "dev": "node --watch server.js" },
+  "engines": { "node": ">=20" }
+}
