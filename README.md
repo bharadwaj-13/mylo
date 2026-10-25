@@ -13,8 +13,9 @@ Mylo is a WhatsApp-first, browser-operated quick-commerce assistant for India. I
 
 1. Create a Supabase project and run [`supabase/schema.sql`](supabase/schema.sql) in its SQL Editor.
 2. In Vercel, set `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and a long random `MYLO_WORKER_SHARED_SECRET`.
-3. Point the Twilio WhatsApp Sandbox inbound webhook at `https://your-domain/api/twilio/whatsapp` using HTTP POST. If `TWILIO_AUTH_TOKEN` is set, requests are signature-verified.
-4. In Mylo, create an account and add/link the WhatsApp number you message from. A Settings form is the next UI addition for that link.
+3. For Google sign-in, enable **Google** under Supabase Authentication → Sign In / Providers, then add its Supabase callback URL in Google Cloud OAuth credentials. Mylo calls Supabase's Google OAuth flow directly.
+4. Point the Twilio WhatsApp Sandbox inbound webhook at `https://your-domain/api/twilio/whatsapp` using HTTP POST. If `TWILIO_AUTH_TOKEN` is set, requests are signature-verified.
+5. In Mylo, create an account and add/link the WhatsApp number you message from. A Settings form is the next UI addition for that link.
 
 ## Deploy the browser worker
 
